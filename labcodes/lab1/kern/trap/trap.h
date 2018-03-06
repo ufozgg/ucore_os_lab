@@ -80,7 +80,7 @@ struct trapframe {
     uintptr_t tf_esp;
     uint16_t tf_ss;
     uint16_t tf_padding5;
-} __attribute__((packed));
+} __attribute__((packed));//size = 76
 
 void idt_init(void);
 void print_trapframe(struct trapframe *tf);

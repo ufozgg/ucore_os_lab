@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <kdebug.h>
-
+#include <assert.h>
 #define STACKFRAME_DEPTH 20
 
 extern const struct stab __STAB_BEGIN__[];  // beginning of stabs table
@@ -290,12 +290,31 @@ read_eip(void) {
  * */
 void
 print_stackframe(void) {
-     /* LAB1 YOUR CODE : STEP 1 */
+     /* LAB1 2015011371 : STEP 1 */
+	uint32_t ebp,eip;
+	uint32_t* last_ebp;
+	uint32_t i,j;
+	ebp = read_ebp();
+	eip = read_eip();
+	for(i=0;i<STACKFRAME_DEPTH;++i)
+	{
+		cprintf("ebp:0x%08x eip:0x%08x args:",ebp,eip);
+		uint32_t *arg = (uint32_t*)ebp + 2;
+		for(j=0;j<4;++j)
+			cprintf("0x%08x ",arg[j]);
+		cprintf("\n");
+		print_debuginfo(eip-1);
+		last_ebp = (uint32_t*)ebp;
+		//cprintf("EQ 0x%08x 0x%08x\n",arg[0],last_ebp[2]);
+		//assert(arg[0]==last_ebp[2]);
+		ebp = last_ebp[0];
+		eip = last_ebp[1];
+	}
      /* (1) call read_ebp() to get the value of ebp. the type is (uint32_t);
       * (2) call read_eip() to get the value of eip. the type is (uint32_t);
       * (3) from 0 .. STACKFRAME_DEPTH
       *    (3.1) printf value of ebp, eip
-      *    (3.2) (uint32_t)calling arguments [0..4] = the contents in address (unit32_t)ebp +2 [0..4]
+      *    (3.2) (uint32_t)calling arguments [0..4] = the contents in address (uint32_t)ebp +2 [0..4]
       *    (3.3) cprintf("\n");
       *    (3.4) call print_debuginfo(eip-1) to print the C calling function name and line number, etc.
       *    (3.5) popup a calling stackframe
