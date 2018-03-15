@@ -102,7 +102,7 @@ alloc_proc(void) {
      *       uint32_t flags;                             // Process flag
      *       char name[PROC_NAME_LEN + 1];               // Process name
      */
- proc->state = PROC_UNINIT;
+ 		proc->state = PROC_UNINIT;
         proc->pid = -1;
         proc->runs = 0;
         proc->kstack = 0;
@@ -114,18 +114,6 @@ alloc_proc(void) {
         proc->cr3 = boot_cr3;
         proc->flags = 0;
         memset(proc->name, 0, PROC_NAME_LEN);
-	/*proc->state = PROC_UNINIT;
-	proc->pid = -1;
-	proc->runs = 0;
-	proc->kstack = 0;
-	proc->need_resched = 0;
-	proc->parent = NULL;
-	proc->mm = NULL;
-	memset(&(proc->context),0,sizeof(struct context));
-	proc->tf = NULL;
-	proc->cr3 = boot_cr3;
-	proc->flags = 0;
-	memset(proc->name,0,PROC_NAME_LEN);*/
     }
     return proc;
 }
@@ -295,48 +283,18 @@ do_fork(uint32_t clone_flags, uintptr_t stack, struct trapframe *tf) {
         goto fork_out;
     }
     ret = -E_NO_MEM;
-	if ((proc = alloc_proc()) == NULL) {
-        goto fork_out;
-    }
-
-    proc->parent = current;
-
-    if (setup_kstack(proc) != 0) {
-        goto bad_fork_cleanup_proc;
-    }
-    if (copy_mm(clone_flags, proc) != 0) {
-        goto bad_fork_cleanup_kstack;
-    }
-    copy_thread(proc, stack, tf);
-
-    bool intr_flag;
-    local_intr_save(intr_flag);
-    {
-        proc->pid = get_pid();
-        hash_proc(proc);
-        list_add(&proc_list, &(proc->list_link));
-        nr_process ++;
-    }
-    local_intr_restore(intr_flag);
-
-    wakeup_proc(proc);
-
-    ret = proc->pid;
     //LAB4:EXERCISE2 2015011371
-	/*proc = alloc_proc();
+	proc = alloc_proc();//    1. call alloc_proc to allocate a proc_struct
 	proc->parent = current;
-	proc->kstack = setup_kstack(proc);
-	proc->mm = copy_mm(clone_flags,proc);
-	copy_thread(proc,stack,tf);
-	bool intr_flag;
-    local_intr_save(intr_flag);
+	setup_kstack(proc);//    2. call setup_kstack to allocate a kernel stack for child process
+	copy_mm(clone_flags,proc);//    3. call copy_mm to dup OR share mm according clone_flag
+	copy_thread(proc,stack,tf);//    4. call copy_thread to setup tf & context in proc_struct
 	proc->pid = get_pid();
 	hash_proc(proc);
 	list_add(&proc_list,&(proc->list_link));
-	++nr_process;
-	local_intr_restore(intr_flag);
-	wakeup_proc(proc);
-	ret = proc->pid;*/
+	++nr_process;//    5. insert proc_struct into hash_list && proc_list
+	wakeup_proc(proc);//    6. call wakeup_proc to make the new child process RUNNABLE
+	ret = proc->pid;//    7. set ret vaule using child proc's pid
     /*
      * Some Useful MACROs, Functions and DEFINEs, you can use them in below implementation.
      * MACROs or Functions:
@@ -353,14 +311,6 @@ do_fork(uint32_t clone_flags, uintptr_t stack, struct trapframe *tf) {
      *   proc_list:    the process set's list
      *   nr_process:   the number of process set
      */
-
-    //    1. call alloc_proc to allocate a proc_struct
-    //    2. call setup_kstack to allocate a kernel stack for child process
-    //    3. call copy_mm to dup OR share mm according clone_flag
-    //    4. call copy_thread to setup tf & context in proc_struct
-    //    5. insert proc_struct into hash_list && proc_list
-    //    6. call wakeup_proc to make the new child process RUNNABLE
-    //    7. set ret vaule using child proc's pid
 fork_out:
     return ret;
 
