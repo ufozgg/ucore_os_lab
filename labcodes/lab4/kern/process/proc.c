@@ -285,7 +285,6 @@ do_fork(uint32_t clone_flags, uintptr_t stack, struct trapframe *tf) {
     ret = -E_NO_MEM;
     //LAB4:EXERCISE2 2015011371
 	proc = alloc_proc();//    1. call alloc_proc to allocate a proc_struct
-	proc->parent = current;
 	setup_kstack(proc);//    2. call setup_kstack to allocate a kernel stack for child process
 	copy_mm(clone_flags,proc);//    3. call copy_mm to dup OR share mm according clone_flag
 	copy_thread(proc,stack,tf);//    4. call copy_thread to setup tf & context in proc_struct

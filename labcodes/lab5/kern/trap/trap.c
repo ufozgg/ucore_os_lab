@@ -46,6 +46,7 @@ idt_init(void) {
 	for(i=0;i<256;++i)
 		SETGATE(idt[i],0,GD_KTEXT,__vectors[i], DPL_KERNEL);
 	SETGATE(idt[T_SWITCH_TOK],0,KERNEL_CS, __vectors[T_SWITCH_TOK],DPL_USER);//READ ANS
+    SETGATE(idt[T_SYSCALL], 1, GD_KTEXT, __vectors[T_SYSCALL], DPL_USER);
     lidt(&idt_pd);
      /* LAB1 2015011371 : STEP 2 */
      /* (1) Where are the entry addrs of each Interrupt Service Routine (ISR)?
@@ -59,7 +60,7 @@ idt_init(void) {
       *     You don't know the meaning of this instruction? just google it! and check the libs/x86.h to know more.
       *     Notice: the argument of lidt is idt_pd. try to find it!
       */
-     /* LAB5 YOUR CODE */ 
+     /* LAB5 2015011371 */ 
      //you should update your lab1 code (just add ONE or TWO lines of code), let user app to use syscall to get the service of ucore
      //so you should setup the syscall interrupt gate in here
 }
@@ -223,13 +224,14 @@ trap_dispatch(struct trapframe *tf) {
         ++ticks;
 		if(ticks%100 == 0)
 			print_ticks(ticks);
+		current->need_resched = 1;
         /* LAB1 2015011371 : STEP 3 */
         /* handle the timer interrupt */
         /* (1) After a timer interrupt, you should record this event using a global variable (increase it), such as ticks in kern/driver/clock.c
          * (2) Every TICK_NUM cycle, you can print some info using a funciton, such as print_ticks().
          * (3) Too Simple? Yes, I think so!
          */
-        /* LAB5 YOUR CODE */
+        /* LAB5 2015011371 */
         /* you should upate you lab1 code (just add ONE or TWO lines of code):
          *    Every TICK_NUM cycle, you should set current process's current->need_resched = 1
          */
