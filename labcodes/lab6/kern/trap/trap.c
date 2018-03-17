@@ -223,9 +223,10 @@ trap_dispatch(struct trapframe *tf) {
     then you can add code here. 
 #endif
         ++ticks;
-		if(ticks%100 == 0)
-			print_ticks(ticks);
-		current->need_resched = 1;
+		//if(ticks%100 == 0)
+		//	print_ticks(ticks);
+		//current->need_resched = 1;	//erase in lab6
+		sched_class_proc_tick(current);
         /* LAB1 2015011371 : STEP 3 */
         /* handle the timer interrupt */
         /* (1) After a timer interrupt, you should record this event using a global variable (increase it), such as ticks in kern/driver/clock.c
@@ -236,7 +237,8 @@ trap_dispatch(struct trapframe *tf) {
         /* you should upate you lab1 code (just add ONE or TWO lines of code):
          *    Every TICK_NUM cycle, you should set current process's current->need_resched = 1
          */
-        /* LAB6 YOUR CODE */
+		
+        /* LAB6 2015011371 */
         /* you should upate you lab5 code
          * IMPORTANT FUNCTIONS:
 	     * sched_class_proc_tick

@@ -87,7 +87,7 @@ static struct proc_struct *
 alloc_proc(void) {
     struct proc_struct *proc = kmalloc(sizeof(struct proc_struct));
     if (proc != NULL) {
-    //LAB4:EXERCISE1 YOUR CODE
+    //LAB4:EXERCISE1 2015011371
     /*
      * below fields in proc_struct need to be initialized
      *       enum proc_state state;                      // Process state
@@ -642,7 +642,7 @@ load_icode(unsigned char *binary, size_t size) {
 	tf->tf_esp = USTACKTOP;
 	tf->tf_eip = elf->e_entry;
 	tf->tf_eflags = FL_IF;
-    /* LAB5:EXERCISE1 YOUR CODE
+    /* LAB5:EXERCISE1 2015011371
      * should set tf_cs,tf_ds,tf_es,tf_ss,tf_esp,tf_eip,tf_eflags
      * NOTICE: If we set trapframe correctly, then the user level process can return to USER MODE from kernel. So
      *          tf_cs should be USER_CS segment (see memlayout.h)
