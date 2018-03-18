@@ -38,8 +38,8 @@ idt_init(void) {
 	extern uintptr_t __vectors[256];
 	uintptr_t i;
 	for(i=0;i<256;++i)
-		SETGATE(idt[i],0,GD_KTEXT,__vectors[i], DPL_KERNEL);
-	SETGATE(idt[T_SWITCH_TOK],0,KERNEL_CS, __vectors[T_SWITCH_TOK],DPL_USER);//READ ANS
+		SETGATE(idt[i],0,KERNEL_CS,__vectors[i], DPL_KERNEL);
+	SETGATE(idt[T_SWITCH_TOK],1,KERNEL_CS, __vectors[T_SWITCH_TOK],DPL_USER);
     lidt(&idt_pd);
      /* LAB1 2015011371 : STEP 2 */
      /* (1) Where are the entry addrs of each Interrupt Service Routine (ISR)?
