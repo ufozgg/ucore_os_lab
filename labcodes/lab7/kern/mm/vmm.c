@@ -55,7 +55,7 @@ mm_create(void) {
         
         set_mm_count(mm, 0);
         sem_init(&(mm->mm_sem), 1);
-        //lock_init(&(mm->mm_lock));Changed to sem init in lb7
+        //lock_init(&(mm->mm_lock));//Changed to sem init in LAB7
     }    
     return mm;
 }
