@@ -87,7 +87,7 @@ static struct proc_struct *
 alloc_proc(void) {
     struct proc_struct *proc = kmalloc(sizeof(struct proc_struct));
     if (proc != NULL) {
-    //LAB4:EXERCISE1 YOUR CODE
+    //LAB4:EXERCISE1 2015011371
     /*
      * below fields in proc_struct need to be initialized
      *       enum proc_state state;                      // Process state
@@ -103,13 +103,39 @@ alloc_proc(void) {
      *       uint32_t flags;                             // Process flag
      *       char name[PROC_NAME_LEN + 1];               // Process name
      */
-     //LAB5 YOUR CODE : (update LAB4 steps)
+ 		proc->state = PROC_UNINIT;
+        proc->pid = -1;
+        proc->runs = 0;
+        proc->kstack = 0;
+        proc->need_resched = 0;
+        proc->parent = NULL;
+        proc->mm = NULL;
+        memset(&(proc->context), 0, sizeof(struct context));
+        proc->tf = NULL;
+        proc->cr3 = boot_cr3;
+        proc->flags = 0;
+        memset(proc->name, 0, PROC_NAME_LEN);
+     //LAB5 2015011371 : (update LAB4 steps)
+		proc->wait_state = 0;
+		proc->cptr = NULL;
+		proc->optr = NULL;
+		proc->yptr = NULL;
     /*
      * below fields(add in LAB5) in proc_struct need to be initialized	
      *       uint32_t wait_state;                        // waiting state
      *       struct proc_struct *cptr, *yptr, *optr;     // relations between processes
+			parent:           proc->parent  (proc is children)
+			children:         proc->cptr    (proc is parent)
+			older sibling:    proc->optr    (proc is younger sibling)
+			younger sibling:  proc->yptr    (proc is older sibling)
 	 */
-     //LAB6 YOUR CODE : (update LAB5 steps)
+     //LAB6 2015011371 : (update LAB5 steps)
+		proc->rq = NULL;
+		list_init(&(proc->run_link));
+		proc->time_slice = 0;
+		skew_heap_init(&(proc->lab6_run_pool));
+		proc->lab6_stride = 0;
+		proc->lab6_priority = 0;
     /*
      * below fields(add in LAB6) in proc_struct need to be initialized
      *     struct run_queue *rq;                       // running queue contains Process
@@ -380,7 +406,7 @@ do_fork(uint32_t clone_flags, uintptr_t stack, struct trapframe *tf) {
         goto fork_out;
     }
     ret = -E_NO_MEM;
-    //LAB4:EXERCISE2 YOUR CODE
+     //LAB4:EXERCISE2 2015011371
     /*
      * Some Useful MACROs, Functions and DEFINEs, you can use them in below implementation.
      * MACROs or Functions:
@@ -398,15 +424,23 @@ do_fork(uint32_t clone_flags, uintptr_t stack, struct trapframe *tf) {
      *   nr_process:   the number of process set
      */
 
-    //    1. call alloc_proc to allocate a proc_struct
-    //    2. call setup_kstack to allocate a kernel stack for child process
-    //    3. call copy_mm to dup OR share mm according clone_flag
-    //    4. call copy_thread to setup tf & context in proc_struct
-    //    5. insert proc_struct into hash_list && proc_list
-    //    6. call wakeup_proc to make the new child process RUNNABLE
-    //    7. set ret vaule using child proc's pid
+    proc = alloc_proc();		//    1. call alloc_proc to allocate a proc_struct
+	proc->parent = current;		//LAB5 update step 1: set child proc's parent to current process, make sure current process's wait_state is 0
+	setup_kstack(proc);			//    2. call setup_kstack to allocate a kernel stack for child process
+	copy_mm(clone_flags,proc);	//    3. call copy_mm to dup OR share mm according clone_flag
+	copy_thread(proc,stack,tf);	//    4. call copy_thread to setup tf & context in proc_struct
+    bool intr_flag;
+    local_intr_save(intr_flag);
+	proc->pid = get_pid();
+	hash_proc(proc);			//    5. insert proc_struct into hash_list && proc_list
+	//list_add(&proc_list,&(proc->list_link));
+	//++nr_process;
+	set_links(proc);
+    local_intr_restore(intr_flag);
+	wakeup_proc(proc);			//    6. call wakeup_proc to make the new child process RUNNABLE
+	ret = proc->pid;			//    7. set ret vaule using child proc's pid
 
-	//LAB5 YOUR CODE : (update LAB4 steps)
+	//LAB5 2015011371 : (update LAB4 steps)
    /* Some Functions
     *    set_links:  set the relation links of process.  ALSO SEE: remove_links:  lean the relation links of process 
     *    -------------------
@@ -603,7 +637,12 @@ load_icode(unsigned char *binary, size_t size) {
     //(6) setup trapframe for user environment
     struct trapframe *tf = current->tf;
     memset(tf, 0, sizeof(struct trapframe));
-    /* LAB5:EXERCISE1 YOUR CODE
+	tf->tf_cs = USER_CS;
+	tf->tf_ds = tf->tf_es = tf->tf_ss = USER_DS;
+	tf->tf_esp = USTACKTOP;
+	tf->tf_eip = elf->e_entry;
+	tf->tf_eflags = FL_IF;
+    /* LAB5:EXERCISE1 2015011371
      * should set tf_cs,tf_ds,tf_es,tf_ss,tf_esp,tf_eip,tf_eflags
      * NOTICE: If we set trapframe correctly, then the user level process can return to USER MODE from kernel. So
      *          tf_cs should be USER_CS segment (see memlayout.h)
@@ -802,9 +841,8 @@ init_main(void *arg) {
     if (pid <= 0) {
         panic("create user_main failed.\n");
     }
- extern void check_sync(void);
-    check_sync();                // check philosopher sync problem
-
+	extern void check_sync(void);
+	check_sync(); // check philosopher sync problem
     while (do_wait(0, NULL) == 0) {
         schedule();
     }
@@ -875,22 +913,20 @@ lab6_set_priority(uint32_t priority)
 }
 
 // do_sleep - set current process state to sleep and add timer with "time"
-//          - then call scheduler. if process run again, delete timer first.
+// - then call scheduler. if process run again, delete timer first.
 int
 do_sleep(unsigned int time) {
-    if (time == 0) {
-        return 0;
-    }
-    bool intr_flag;
-    local_intr_save(intr_flag);
-    timer_t __timer, *timer = timer_init(&__timer, current, time);
-    current->state = PROC_SLEEPING;
-    current->wait_state = WT_TIMER;
-    add_timer(timer);
-    local_intr_restore(intr_flag);
-
-    schedule();
-
-    del_timer(timer);
-    return 0;
+	if (time == 0) {
+		return 0;
+	}
+	bool intr_flag;
+	local_intr_save(intr_flag);
+	timer_t __timer, *timer = timer_init(&__timer, current, time);
+	current->state = PROC_SLEEPING;
+	current->wait_state = WT_TIMER;
+	add_timer(timer);
+	local_intr_restore(intr_flag);
+	schedule();
+	del_timer(timer);
+	return 0;
 }

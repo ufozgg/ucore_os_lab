@@ -2,14 +2,15 @@
 #include <list.h>
 #include <string.h>
 #include <default_pmm.h>
-
+#include <bubby.h>
+//#define BUBBY
 /* In the first fit algorithm, the allocator keeps a list of free blocks (known as the free list) and,
    on receiving a request for memory, scans along the list for the first block that is large enough to
    satisfy the request. If the chosen block is significantly larger than that requested, then it is 
    usually split, and the remainder added to the list as another free block.
    Please see Page 196~198, Section 8.2 of Yan Wei Min's chinese book "Data Structure -- C programming language"
 */
-// LAB2 EXERCISE 1: YOUR CODE
+// LAB2 EXERCISE 1: 2015011371
 // you should rewrite functions: default_init,default_init_memmap,default_alloc_pages, default_free_pages.
 /*
  * Details of FFMA
@@ -58,35 +59,74 @@ free_area_t free_area;
 
 #define free_list (free_area.free_list)
 #define nr_free (free_area.nr_free)
-
+void print_list()
+{
+	return;
+	cprintf("\tPRINT LIST BEGIN\n");
+	list_entry_t *le = &free_list;
+    while ((le = list_next(le)) != &free_list) {
+        struct Page *p = le2page(le, page_link);
+        cprintf("\t%d\t%d\t%d\n",p->property,p->flags,p->ref);
+    }
+	cprintf("\tPRINT LIST END\n");
+}
 static void
 default_init(void) {
+#ifdef BUBBY
+	
+	return;
+#endif
+	cprintf("INIT 0\n");
     list_init(&free_list);
     nr_free = 0;
 }
-
+struct Page *BASE;
+int nn;
 static void
 default_init_memmap(struct Page *base, size_t n) {
+	cprintf("INIT memmap %d\n",n);
     assert(n > 0);
     struct Page *p = base;
     for (; p != base + n; p ++) {
         assert(PageReserved(p));
         p->flags = p->property = 0;
         set_page_ref(p, 0);
+		//p->property = 0;//
+		//SetPageProperty(p);//
     }
+	cprintf("%d\n",n);
     base->property = n;
     SetPageProperty(base);
     nr_free += n;
+#ifdef BUBBY
+	nn = n-1;
+	--nr_free;
+	bubby_new(n-1);
+	BASE = base;
+#else
     list_add(&free_list, &(base->page_link));
+#endif
 }
 
 static struct Page *
 default_alloc_pages(size_t n) {
+	print_list();
     assert(n > 0);
     if (n > nr_free) {
         return NULL;
     }
     struct Page *page = NULL;
+#ifdef BUBBY
+	n = MAX_POWER_2(n)*2;
+	//cprintf("ALLOC me %d\t%d\n",n,nr_free);
+	int s = find(1,1,nn,n);
+	if(s==-1)
+		page = NULL;
+	else
+		page = BASE + s;
+	//cprintf("GIVEPAGE BASE %x\t%d\n",BASE,s);
+	//cprintf("GIVEPAGE BUBBY%x\n",page);
+#else
     list_entry_t *le = &free_list;
     while ((le = list_next(le)) != &free_list) {
         struct Page *p = le2page(le, page_link);
@@ -95,13 +135,37 @@ default_alloc_pages(size_t n) {
             break;
         }
     }
+	//cprintf("GIVEPAGE LIST %x\n",&page);
+#endif
     if (page != NULL) {
-        list_del(&(page->page_link));
+        //list_del(&(page->page_link));
+		//cprintf("%d %x\n",page->property,&(page->page_link));
+	    struct Page *p = page;
+		/*for (; p != page + n; p ++) {
+		    assert(PageReserved(p));
+		    p->flags = p->property = 0;
+		    set_page_ref(p, 0);
+			p->property = 0;
+			SetPageProperty(p);
+		}/**/
+		#ifndef BUBBY
         if (page->property > n) {
             struct Page *p = page + n;
+		    p->flags = p->property = 0;
+		    set_page_ref(p, 0);
             p->property = page->property - n;
-            list_add(&free_list, &(p->page_link));
-    }
+			SetPageProperty(p);//
+		    list_add(&(page->page_link), &(p->page_link));//
+			//cprintf("pro %d\n",p->property);
+			//cprintf("nex %d\n",list_next(&free_list));
+			//cprintf("p   %d %d\n",&p,p->page_link);
+    	}
+		list_del(&(page->page_link));//
+		#endif
+		page->property = n;//
+		SetPageProperty(page);//
+		//cprintf("%d %x\n",page->property,&(page->page_link));
+		print_list();
         nr_free -= n;
         ClearPageProperty(page);
     }
@@ -110,6 +174,13 @@ default_alloc_pages(size_t n) {
 
 static void
 default_free_pages(struct Page *base, size_t n) {
+#ifdef BUBBY
+	//cprintf("clr %x\n",base-BASE);
+	n = MAX_POWER_2(n)*2;
+	clr(1,1,nn,base-BASE,base-BASE+n-1);
+#endif
+	//cprintf("FREE me %d\n",n);
+	print_list();
     assert(n > 0);
     struct Page *p = base;
     for (; p != base + n; p ++) {
@@ -119,6 +190,7 @@ default_free_pages(struct Page *base, size_t n) {
     }
     base->property = n;
     SetPageProperty(base);
+#ifndef BUBBY
     list_entry_t *le = list_next(&free_list);
     while (le != &free_list) {
         p = le2page(le, page_link);
@@ -135,8 +207,19 @@ default_free_pages(struct Page *base, size_t n) {
             list_del(&(p->page_link));
         }
     }
+#endif
     nr_free += n;
-    list_add(&free_list, &(base->page_link));
+#ifndef BUBBY
+	le = list_next(&free_list);
+    while (le != &free_list) {
+        p = le2page(le, page_link);
+        le = list_next(le);
+        //cprintf("P\t%d\n",p);
+		if (p > base)
+			break;
+    }//
+    list_add_before(le, &(base->page_link));
+#endif
 }
 
 static size_t
@@ -199,6 +282,22 @@ basic_check(void) {
 // NOTICE: You SHOULD NOT CHANGE basic_check, default_check functions!
 static void
 default_check(void) {
+#ifdef BUBBY
+	struct Page *w0 = alloc_pages(5);
+	assert(w0 != NULL);
+	struct Page *w1 = alloc_pages(3);
+	assert(w1 != NULL);
+	struct Page *w2 = alloc_pages(3);
+	assert(w2 != NULL);
+	assert(w1!=w2&&w1!=w0&&w2!=w0);
+	free_pages(w0,5);
+	struct Page *w3 = alloc_pages(22);
+	assert(w3 != NULL);
+	struct Page *w4 = alloc_pages(5);
+	assert(w4 != NULL);
+	assert(w4==w0);
+	return;
+#endif
     int count = 0, total = 0;
     list_entry_t *le = &free_list;
     while ((le = list_next(le)) != &free_list) {
@@ -221,6 +320,7 @@ default_check(void) {
 
     unsigned int nr_free_store = nr_free;
     nr_free = 0;
+	//cprintf("CCCCCCCCCCCCCCCCCHHHHHHHHHHHHHHHHHHH\n");
 
     free_pages(p0 + 2, 3);
     assert(alloc_pages(4) == NULL);
@@ -234,7 +334,8 @@ default_check(void) {
     free_pages(p1, 3);
     assert(PageProperty(p0) && p0->property == 1);
     assert(PageProperty(p1) && p1->property == 3);
-
+	//cprintf("CCCCCCCCCCCCCCCCCHHHHHHHHHHHHHHHHHHH\n");
+	//cprintf("%d %d %d\n",alloc_page(),p0,p1);
     assert((p0 = alloc_page()) == p2 - 1);
     free_page(p0);
     assert((p0 = alloc_pages(2)) == p2 + 1);

@@ -43,7 +43,7 @@ procedure take_chopsticks(i)
   {
     DOWN(me);               # critical section 
     pflag[i] := HUNGRY;
-    test[i];
+    test(i);
     UP(me);                 # end critical section 
     DOWN(s[i])              # Eat if enabled 
    }

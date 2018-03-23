@@ -35,6 +35,7 @@ struct context {
 };
 
 #define PROC_NAME_LEN               50
+//LAB7 changed
 #define MAX_PROCESS                 4096
 #define MAX_PID                     (MAX_PROCESS * 2)
 
