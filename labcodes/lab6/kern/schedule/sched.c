@@ -38,7 +38,7 @@ sched_class_proc_tick(struct proc_struct *proc) {
     else {
         proc->need_resched = 1;
     }
-}
+}//This function is not static
 
 static struct run_queue __rq;
 
