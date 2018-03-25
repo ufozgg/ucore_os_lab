@@ -256,3 +256,66 @@ cond_wait (condvar_t *cvp) {
 * 实验1：哲学家就餐问题、信号量、同步互斥锁。
 * 实验2：管程和条件变量，同步互斥。
 * 其他：原子指令实现同步互斥、生产者-消费者问题。
+
+## 效果符合预期，如下
+
+```
+badsegment:              (3.5s)
+  -check result:                             OK
+  -check output:                             OK
+divzero:                 (3.1s)
+  -check result:                             OK
+  -check output:                             OK
+softint:                 (3.1s)
+  -check result:                             OK
+  -check output:                             OK
+faultread:               (1.5s)
+  -check result:                             OK
+  -check output:                             OK
+faultreadkernel:         (1.5s)
+  -check result:                             OK
+  -check output:                             OK
+hello:                   (3.1s)
+  -check result:                             OK
+  -check output:                             OK
+testbss:                 (1.6s)
+  -check result:                             OK
+  -check output:                             OK
+pgdir:                   (3.1s)
+  -check result:                             OK
+  -check output:                             OK
+yield:                   (3.1s)
+  -check result:                             OK
+  -check output:                             OK
+badarg:                  (3.1s)
+  -check result:                             OK
+  -check output:                             OK
+exit:                    (3.1s)
+  -check result:                             OK
+  -check output:                             OK
+spin:                    (3.1s)
+  -check result:                             OK
+  -check output:                             OK
+waitkill:                (3.1s)
+  -check result:                             OK
+  -check output:                             OK
+forktest:                (3.1s)
+  -check result:                             OK
+  -check output:                             OK
+forktree:                (3.1s)
+  -check result:                             OK
+  -check output:                             OK
+priority:                (15.5s)
+  -check result:                             OK
+  -check output:                             OK
+sleep:                   (11.5s)
+  -check result:                             OK
+  -check output:                             OK
+sleepkill:               (3.1s)
+  -check result:                             OK
+  -check output:                             OK
+matrix:                  (13.0s)
+  -check result:                             OK
+  -check output:                             OK
+Total Score: 190/190
+```

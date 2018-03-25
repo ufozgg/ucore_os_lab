@@ -1,4 +1,4 @@
-# LAB1 实验报告
+# LAB2 实验报告
 
 ## 练习0：填写已有实验
 
@@ -230,3 +230,13 @@ ucore可以利用这些属性，很方便地对PDE或PTE进行操作。
 段机制。
 
 更高级的内存分配方法与碎片整理方法。
+
+## 效果符合预期，如下
+
+```
+Check PMM:               (2.4s)
+  -check pmm:                                OK
+  -check page table:                         OK
+  -check ticks:                              OK
+Total Score: 50/50
+```

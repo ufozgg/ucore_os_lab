@@ -517,9 +517,7 @@ run_test -prog 'forktree'    -check default_check               \
         'kernel_execve: pid = 2, name = "forktree".'            \
       - '....: I am '\'''\'                                     \
       - '....: I am '\''0'\'                                    \
-      - '....: I am '\'''\'                                     \
       - '....: I am '\''1'\'                                    \
-      - '....: I am '\''0'\'                                    \
       - '....: I am '\''01'\'                                   \
       - '....: I am '\''00'\'                                   \
       - '....: I am '\''11'\'                                   \

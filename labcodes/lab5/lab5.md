@@ -1,18 +1,18 @@
-# LAB3 实验报告
+# LAB5 实验报告
 
 ## 练习0：填写已有实验
 
 需要修改之前的代码，使其能顺利合并：
 
-在`trap_c`的`idt_init`中，增加
+在`trap.c`的`idt_init`中，增加
 `SETGATE(idt[T_SYSCALL], 1, GD_KTEXT, __vectors[T_SYSCALL], DPL_USER);`
 对`syscal`部分进行设置。
 
-在`trap_c`的`trap_dispatch`中，增加
+在`trap.c`的`trap_dispatch`中，增加
 `current->need_resched = 1;`
 即在始终中断时，将当前进程设置为`需要调度`，以切换进程。
 
-在`proc_c`的`do_fork`中，修改父进程为`current`，同时设置进程链接
+在`proc.c`的`do_fork`中，修改父进程为`current`，同时设置进程链接
 
 `proc->parent = current;`
 
@@ -147,3 +147,54 @@ PROC_UNINIT -- proc_init/wakeup_proc --> PROC_RUNNABLE -- try_free_pages/do_wait
 * 练习2：进程的fork和空间复制
 * 练习3：进程调度状态理解与分析
 * 其他：用户线程
+
+## 效果符合预期，如下
+
+```
+badsegment:              (1.8s)
+  -check result:                             OK
+  -check output:                             OK
+divzero:                 (1.5s)
+  -check result:                             OK
+  -check output:                             OK
+softint:                 (1.5s)
+  -check result:                             OK
+  -check output:                             OK
+faultread:               (1.5s)
+  -check result:                             OK
+  -check output:                             OK
+faultreadkernel:         (1.6s)
+  -check result:                             OK
+  -check output:                             OK
+hello:                   (1.6s)
+  -check result:                             OK
+  -check output:                             OK
+testbss:                 (1.6s)
+  -check result:                             OK
+  -check output:                             OK
+pgdir:                   (1.5s)
+  -check result:                             OK
+  -check output:                             OK
+yield:                   (1.5s)
+  -check result:                             OK
+  -check output:                             OK
+badarg:                  (1.5s)
+  -check result:                             OK
+  -check output:                             OK
+exit:                    (1.5s)
+  -check result:                             OK
+  -check output:                             OK
+spin:                    (2.0s)
+  -check result:                             OK
+  -check output:                             OK
+waitkill:                (1.7s)
+  -check result:                             OK
+  -check output:                             OK
+forktest:                (1.5s)
+  -check result:                             OK
+  -check output:                             OK
+forktree:                (1.5s)
+  -check result:                             OK
+  -check output:                             OK
+Total Score: 150/150
+```

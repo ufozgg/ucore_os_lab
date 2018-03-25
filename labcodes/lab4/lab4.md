@@ -132,3 +132,16 @@ proc_run(struct proc_struct *proc) {
 * 练习2：进程的创建与分配
 * 练习3：进程切换
 * 其他知识点：进程的等待、进程退出的完整实现
+
+## 效果符合预期，如下
+
+```
+Check VMM:               (1.8s)
+  -check pmm:                                OK
+  -check page table:                         OK
+  -check vmm:                                OK
+  -check swap page fault:                    OK
+  -check ticks:                              OK
+  -check initproc:                           OK
+Total Score: 90/90
+```

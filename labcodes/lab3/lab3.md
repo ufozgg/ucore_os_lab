@@ -75,6 +75,55 @@
 
 在代码中，需要实现的核心函数包括`_fifo_map_swappable`、`_fifo_swap_out_victim`。
 
+### 实现代码
+
+```
+static int
+_fifo_init_mm(struct mm_struct *mm)
+{
+     list_init(&pra_list_head);
+     mm->sm_priv = &pra_list_head;
+     //cprintf(" mm->sm_priv %x in fifo_init_mm\n",mm->sm_priv);
+     return 0;
+}
+/*
+ * (3)_fifo_map_swappable: According FIFO PRA, we should link the most recent arrival page at the back of pra_list_head qeueue
+ */
+static int
+_fifo_map_swappable(struct mm_struct *mm, uintptr_t addr, struct Page *page, int swap_in)
+{
+    list_entry_t *head=(list_entry_t*) mm->sm_priv;
+    list_entry_t *entry=&(page->pra_page_link);
+ 
+    assert(entry != NULL && head != NULL);
+    //record the page access situlation
+    /*LAB3 EXERCISE 2: 2015011371*/ 
+    //(1)link the most recent arrival page at the back of the pra_list_head qeueue.
+	list_add(head,entry);
+    return 0;
+}
+/*
+ *  (4)_fifo_swap_out_victim: According FIFO PRA, we should unlink the  earliest arrival page in front of pra_list_head qeueue,
+ *                            then set the addr of addr of this page to ptr_page.
+ */
+static int
+_fifo_swap_out_victim(struct mm_struct *mm, struct Page ** ptr_page, int in_tick)
+{
+     list_entry_t *head=(list_entry_t*) mm->sm_priv;
+         assert(head != NULL);
+     assert(in_tick==0);
+     /* Select the victim */
+     /*LAB3 EXERCISE 2: 2015011371*/ 
+     //(1)  unlink the  earliest arrival page in front of pra_list_head qeueue
+     //(2)  set the addr of addr of this page to ptr_page
+	 list_entry_t *entry = head->prev;
+	 list_del(entry);
+	 struct Page* page = le2page(entry,pra_page_link);
+	 *ptr_page = page;
+     return 0;
+}
+```
+
 ### 问题1：如果要在ucore上实现"extended clock页替换算法"请给你的设计方案，现有的swap_manager框架是否足以支持在ucore中实现此算法？如果是，请给你的设计方案。如果不是，请给出你的新的扩展和基此扩展的设计方案。并需要回答如下问题
 
 * 需要被换出的页的特征是什么？
@@ -103,3 +152,15 @@
 * 练习2：页的换入换出，FIFO算法。
 
 * 其他知识点：LRU算法，工作集置换及全局置换算法等。
+
+## 效果符合预期，如下
+
+```
+Check SWAP:              (2.9s)
+  -check pmm:                                OK
+  -check page table:                         OK
+  -check vmm:                                OK
+  -check swap page fault:                    OK
+  -check ticks:                              OK
+Total Score: 45/45
+```

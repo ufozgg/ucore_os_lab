@@ -343,3 +343,19 @@ lab1_switch_to_kernel(void) {
 * 练习6：时钟中断的处理方法；
 * 挑战实验：用户态与内核态的切换方法。
 
+## 效果符合预期，如下
+
+```
+Check Output:            (2.3s)
+  -check ring 0:                             OK
+  -check switch to ring 3:                   OK
+  -check switch to ring 0:                   OK
+  -check ticks:                              OK
+Total Score: 40/40
+
+```
+## 效果符合预期，如下
+
+```
+
+```

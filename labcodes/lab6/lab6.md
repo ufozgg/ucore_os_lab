@@ -130,3 +130,60 @@ RR算法中名主要实现的调度函数大致有以下五个：
 * 实验1：RR调度算法与调度的基本概念
 * 实验2：SS调度算法的实现
 * 其他：实时调度、多处理器调度、优先级反置、FCFS等其他调度算法
+
+## 效果符合预期，如下
+
+```
+badsegment:              (1.8s)
+  -check result:                             OK
+  -check output:                             OK
+divzero:                 (1.6s)
+  -check result:                             OK
+  -check output:                             OK
+softint:                 (1.6s)
+  -check result:                             OK
+  -check output:                             OK
+faultread:               (1.5s)
+  -check result:                             OK
+  -check output:                             OK
+faultreadkernel:         (1.5s)
+  -check result:                             OK
+  -check output:                             OK
+hello:                   (1.5s)
+  -check result:                             OK
+  -check output:                             OK
+testbss:                 (1.5s)
+  -check result:                             OK
+  -check output:                             OK
+pgdir:                   (1.5s)
+  -check result:                             OK
+  -check output:                             OK
+yield:                   (1.5s)
+  -check result:                             OK
+  -check output:                             OK
+badarg:                  (1.5s)
+  -check result:                             OK
+  -check output:                             OK
+exit:                    (1.5s)
+  -check result:                             OK
+  -check output:                             OK
+spin:                    (1.7s)
+  -check result:                             OK
+  -check output:                             OK
+waitkill:                (2.1s)
+  -check result:                             OK
+  -check output:                             OK
+forktest:                (1.5s)
+  -check result:                             OK
+  -check output:                             OK
+forktree:                (1.5s)
+  -check result:                             OK
+  -check output:                             OK
+matrix:                  (13.6s)
+  -check result:                             OK
+  -check output:                             OK
+priority:                (11.5s)
+  -check result:                             OK
+  -check output:                             OK
+Total Score: 170/170
+```
