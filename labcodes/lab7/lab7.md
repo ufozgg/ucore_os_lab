@@ -117,7 +117,28 @@ try_down(semaphore_t *sem) {
 
 ### 练习2.1：内核级条件变量的设计描述，并说其大致执行流流程
 
-这是在内核中对以上问题的一种重现，只需要编辑以下几个函数即可：
+内核态采用Hoare管程实现。
+
+进入管程时，需要调用`down`函数。
+
+退出时，需要调用`up`函数。
+
+在管程中，运用同步互斥来控制，结构体实现在`condvar`与`monitor`中，具体如下：
+
+```
+typedef struct condvar{
+    semaphore_t sem;        // the sem semaphore  is used to down the waiting proc, and the signaling proc should up the waiting proc
+    int count;              // the number of waiters on condvar
+    monitor_t * owner;      // the owner(monitor) of this condvar
+} condvar_t;
+
+typedef struct monitor{
+    semaphore_t mutex;      // the mutex lock for going into the routines in monitor, should be initialized to 1
+    semaphore_t next;       // the next semaphore is used to down the signaling proc itself, and the other OR wakeuped waiting proc should wake up the sleeped signaling proc.
+    int next_count;         // the number of of sleeped signaling proc
+    condvar_t *cv;          // the condvars in monitor
+} monitor_t;
+```
 
 在`phi_take_forks_condvar`中，在哲学家希望取得叉子时，设置其为HUNGRY，调用`phi_test_condvar`函数，该函数会测试这个哲学家是否应该进入吃饭状态，如果是，则执行相应操作。如果他没有进入吃饭状态，则设置该信号量加入等待队列，等待时机吃饭。
 
@@ -220,4 +241,18 @@ cond_wait (condvar_t *cvp) {
 
 ### 练习2.2：内核级条件变量的设计描述，并说其大致执行流流程
 
+和练习1相似，用户态中的条件变量的设计。只需要提供相应的系统调用，来使用内核态的变量即可。
 
+### 练习2.3：能否不用基于信号量机制来完成条件变量？如果不能，请给出理由，如果能，请给出设计说明和具体实现。
+
+我认为可以，因为还能使用原子操作来进行条件变量的维护，达到信号量想要达到的效果。
+
+## 和参考答案对比
+
+本质相同，因为每一个地方都提供了充足的注释，实现起来就完全按照提示。
+
+##知识点总结
+
+* 实验1：哲学家就餐问题、信号量、同步互斥锁。
+* 实验2：管程和条件变量，同步互斥。
+* 其他：原子指令实现同步虎互斥、生产者-消费者问题。
